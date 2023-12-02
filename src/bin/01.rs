@@ -8,19 +8,35 @@ macro_rules! regex {
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    Some(input.split('\n').fold(0, |total, s| {
-        let tens = s
-            .matches(|c| char::is_ascii_digit(&c))
-            .next()
-            .and_then(|c| c.parse().ok())
-            .unwrap_or(0);
-        let ones = s
-            .rmatches(|c| char::is_ascii_digit(&c))
-            .next()
-            .and_then(|c| c.parse().ok())
-            .unwrap_or(0);
-        total + tens * 10 + ones
-    }))
+    let input = input.as_bytes();
+    let mut total = 0;
+    let mut first = b'0';
+    let mut last = b'0';
+    for b in input {
+        let b = *b;
+        if b < b'1' {
+            if b == b'\n' {
+                total += ((first - b'0') * 10 + (last - b'0')) as u32;
+                first = b'0';
+                last = b'0';
+            }
+            continue;
+        }
+
+        if b > b'9' {
+            continue;
+        }
+
+        if first == b'0' {
+            first = b;
+        }
+
+        last = b;
+    }
+    if first != b'0' || last != b'0' {
+        total += ((first - b'0') * 10 + (last - b'0')) as u32;
+    }
+    Some(total)
 }
 
 fn parse(input: &str) -> Option<u32> {
