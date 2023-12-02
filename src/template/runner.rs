@@ -87,37 +87,35 @@ fn format_duration(duration: &Duration, samples: u128) -> String {
 }
 
 fn print_result<T: Display>(result: &Option<T>, part: &str, duration_str: &str) {
-    let is_intermediate_result = duration_str.is_empty();
+    let is_final_result = !duration_str.is_empty();
+
+    if is_final_result {
+        print!("\r");
+    }
+    print!("{part}: ");
 
     match result {
         Some(result) => {
             if result.to_string().contains('\n') {
-                let str = format!("{part}: ▼ {duration_str}");
-                if is_intermediate_result {
-                    print!("{str}");
-                } else {
-                    print!("\r");
-                    println!("{str}");
-                    println!("{result}");
+                print!("▼ {duration_str}");
+                if is_final_result {
+                    println!();
+                    print!("{result}");
                 }
             } else {
-                let str = format!("{part}: {ANSI_BOLD}{result}{ANSI_RESET}{duration_str}");
-                if is_intermediate_result {
-                    print!("{str}");
-                } else {
-                    print!("\r");
-                    println!("{str}");
-                }
+                print!("{ANSI_BOLD}{result}{ANSI_RESET}{duration_str}");
             }
         }
         None => {
-            if is_intermediate_result {
-                print!("{part}: ✖");
-            } else {
-                print!("\r");
-                println!("{part}: ✖             ");
+            print!("✖");
+            if is_final_result {
+                print!("             ");
             }
         }
+    }
+
+    if is_final_result {
+        println!();
     }
 }
 
