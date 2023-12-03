@@ -16,7 +16,8 @@ struct TupleMaker<'a, T> {
 }
 
 impl<'a, T> TupleMaker<'a, T>
-    where T: Iterator<Item = &'a u8>
+where
+    T: Iterator<Item = &'a u8>,
 {
     fn new(input: &'a mut T) -> Self {
         Self {
@@ -43,7 +44,7 @@ impl<'a, T> TupleMaker<'a, T>
         if !self.done {
             for &c in &mut *self.input {
                 if c == b':' {
-                    return true
+                    return true;
                 }
             }
         }
@@ -59,7 +60,7 @@ impl<'a, T> TupleMaker<'a, T>
     //         match c {
     //             b'0'..=b'9' => {
     //                 game_id *= 10;
-    //                 game_id += (c - b'0') as u32;
+    //                 game_id += u32::from(c - b'0');
     //             },
     //             b':' => break,
     //             _ => {},
@@ -74,7 +75,8 @@ impl<'a, T> TupleMaker<'a, T>
 }
 
 impl<'a, T> Iterator for TupleMaker<'a, T>
-    where T: Iterator<Item = &'a u8>
+where
+    T: Iterator<Item = &'a u8>,
 {
     type Item = (u32, u32, u32);
     fn next(&mut self) -> Option<Self::Item> {
@@ -87,23 +89,23 @@ impl<'a, T> Iterator for TupleMaker<'a, T>
             match c {
                 b'0'..=b'9' => {
                     self.count *= 10;
-                    self.count += (c - b'0') as u32;
-                },
+                    self.count += u32::from(c - b'0');
+                }
                 b'r' if last_was_space => {
                     self.tuple.0 = self.count;
                     self.count = 0;
-                },
+                }
                 b'g' if last_was_space => {
                     self.tuple.1 = self.count;
                     self.count = 0;
-                },
+                }
                 b'b' if last_was_space => {
                     self.tuple.2 = self.count;
                     self.count = 0;
-                },
+                }
                 b';' => return Some(std::mem::take(&mut self.tuple)),
                 b'\n' => break,
-                _ => {},
+                _ => {}
             }
         }
         self.done = true;
@@ -121,10 +123,10 @@ pub fn part_one(input: &str) -> Option<u32> {
             match c {
                 b'0'..=b'9' => {
                     game_id *= 10;
-                    game_id += (c - b'0') as u32;
-                },
+                    game_id += u32::from(c - b'0');
+                }
                 b':' => break,
-                _ => {},
+                _ => {}
             }
         }
         if game_id == 0 {
@@ -141,20 +143,20 @@ pub fn part_one(input: &str) -> Option<u32> {
             match (c, mine) {
                 (b'0'..=b'9', _) => {
                     count *= 10;
-                    count += (c - b'0') as u32;
-                },
+                    count += u32::from(c - b'0');
+                }
                 (b'r', (o, ..)) | (b'g', (_, o, ..)) | (b'b', (_, _, o)) if lws => {
                     possible = o >= count;
                     count = 0;
                     if !possible {
                         break;
                     }
-                },
+                }
                 (b'\n', _) => {
                     done = true;
                     break;
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
 

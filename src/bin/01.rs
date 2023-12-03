@@ -16,7 +16,7 @@ pub fn part_one(input: &str) -> Option<u32> {
         let b = *b;
         if b < b'1' {
             if b == b'\n' {
-                total += ((first - b'0') * 10 + (last - b'0')) as u32;
+                total += u32::from((first - b'0') * 10 + (last - b'0'));
                 first = b'0';
                 last = b'0';
             }
@@ -34,7 +34,7 @@ pub fn part_one(input: &str) -> Option<u32> {
         last = b;
     }
     if first != b'0' || last != b'0' {
-        total += ((first - b'0') * 10 + (last - b'0')) as u32;
+        total += u32::from((first - b'0') * 10 + (last - b'0'));
     }
     Some(total)
 }
@@ -79,18 +79,19 @@ const WORDS: [(&[u8], u8); 9] = [
 // println!("{filter:b}");
 // const FILTER: u32 = 0b111111100110000111110000;
 
+#[allow(clippy::bool_to_int_with_if)]
 pub fn part_two(input: &str) -> Option<u32> {
     let input = input.as_bytes();
     let mut total = 0;
     let mut first = b'0';
     let mut last = b'0';
     let mut reset_words = false;
-    let mut word_positions = [0;9];
+    let mut word_positions = [0; 9];
     for b in input {
         let mut b = *b;
         if b < b'1' {
             if b == b'\n' {
-                total += ((first - b'0') * 10 + (last - b'0')) as u32;
+                total += u32::from((first - b'0') * 10 + (last - b'0'));
                 first = b'0';
                 last = b'0';
             }
@@ -99,12 +100,13 @@ pub fn part_two(input: &str) -> Option<u32> {
         }
 
         if b > b'9' {
-            if b < b'e' || b > b'x' { // || (FILTER >> (b - b'a')) & 1 == 0 {
+            if !(b'e'..=b'x').contains(&b) {
+                // || (FILTER >> (b - b'a')) & 1 == 0 {
                 reset_words = true;
                 continue;
             }
             if reset_words {
-                word_positions = [0;9];
+                word_positions = [0; 9];
                 reset_words = false;
             }
             let mut matched = false;
@@ -144,7 +146,7 @@ pub fn part_two(input: &str) -> Option<u32> {
         last = b;
     }
     if first != b'0' || last != b'0' {
-        total += ((first - b'0') * 10 + (last - b'0')) as u32;
+        total += u32::from((first - b'0') * 10 + (last - b'0'));
     }
     Some(total)
 
