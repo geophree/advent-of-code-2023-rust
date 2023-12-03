@@ -113,31 +113,77 @@ impl<'a, T> Iterator for TupleMaker<'a, T>
 
 pub fn part_one(input: &str) -> Option<u32> {
     let mut total = 0;
-    let mine = (12, 13, 14);
+    let red = 12;
+    let green = 13;
+    let blue = 14;
     let mut input = input.as_bytes().iter();
-    let mut tm = TupleMaker::new(&mut input);
     loop {
-        let Some(game_id) = tm.consume_prefix_return_game_id() else {
+        let mut game_id = 0;
+        for &c in input.by_ref() {
+            match c {
+                b'0'..=b'9' => {
+                    game_id *= 10;
+                    game_id += (c - b'0') as u32;
+                },
+                b':' => break,
+                _ => {},
+            }
+        }
+        if game_id == 0 {
             return Some(total);
-        };
+        }
 
         let mut possible = true;
-        for t in &mut tm {
-            // One way that's faster is if we compare each individual value
-            // as we parse it.
-            if mine.0 < t.0
-                || mine.1 < t.1
-                || mine.2 < t.2
-            {
-                possible = false;
-                break;
+        let mut count = 0;
+        let mut last_was_space = false;
+        let mut done = false;
+        for &c in input.by_ref() {
+            let lws = last_was_space;
+            last_was_space = c == b' ';
+            match c {
+                b'0'..=b'9' => {
+                    count *= 10;
+                    count += (c - b'0') as u32;
+                },
+                b'r' if lws => {
+                    possible = red >= count;
+                    count = 0;
+                    if !possible {
+                        break;
+                    }
+                },
+                b'g' if lws => {
+                    possible = green >= count;
+                    count = 0;
+                    if !possible {
+                        break;
+                    }
+                },
+                b'b' if lws => {
+                    possible = blue >= count;
+                    count = 0;
+                    if !possible {
+                        break;
+                    }
+                },
+                b'\n' => {
+                    done = true;
+                    break;
+                },
+                _ => {},
             }
         }
 
         if possible {
             total += game_id;
         }
-        tm.next_line();
+        if !done {
+            for &c in input.by_ref() {
+                if c == b'\n' {
+                    break;
+                }
+            }
+        }
     }
 }
 
