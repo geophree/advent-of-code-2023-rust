@@ -1,120 +1,160 @@
-use std::str::FromStr;
-
 advent_of_code::solution!(2);
 
-macro_rules! regex {
-    ($re:literal $(,)?) => {{
-        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
-        RE.get_or_init(|| regex::Regex::new($re).unwrap())
-    }};
+// macro_rules! regex {
+//     ($re:literal $(,)?) => {{
+//         static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+//         RE.get_or_init(|| regex::Regex::new($re).unwrap())
+//     }};
+// }
+
+struct TupleMaker<'a, T> {
+    input: &'a mut T,
+    tuple: (u32, u32, u32),
+    count: u32,
+    last_was_space: bool,
+    done: bool,
 }
 
-#[derive(Debug, Default)]
-struct Cubes {
-    red: u32,
-    green: u32,
-    blue: u32,
-    total: u32,
-}
-
-impl Cubes {
-    const fn new(red: u32, green: u32, blue: u32) -> Self {
+impl<'a, T> TupleMaker<'a, T>
+    where T: Iterator<Item = &'a u8>
+{
+    fn new(input: &'a mut T) -> Self {
         Self {
-            red,
-            green,
-            blue,
-            total: red + green + blue,
+            input,
+            tuple: Default::default(),
+            count: 0,
+            last_was_space: false,
+            done: false,
         }
     }
 
-    fn take_max(&mut self, other: &Self) {
-        self.red = self.red.max(other.red);
-        self.green = self.green.max(other.green);
-        self.blue = self.blue.max(other.blue);
-    }
-
-    fn power(&self) -> u32 {
-        self.red * self.green * self.blue
-    }
-
-    fn is_possible_to_draw(&self, draw: &Self) -> bool {
-        self.red >= draw.red
-            && self.green >= draw.green
-            && self.blue >= draw.blue
-            && self.total >= draw.total
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-struct ParseCubesError;
-
-impl FromStr for Cubes {
-    type Err = ParseCubesError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let re = regex!(r"([0-9]+) +(red|green|blue)");
-        let mut red = 0;
-        let mut green = 0;
-        let mut blue = 0;
-        for c in re.captures_iter(s) {
-            let count = c[1].parse().or(Err(ParseCubesError))?;
-            match &c[2] {
-                "red" => red = count,
-                "green" => green = count,
-                "blue" => blue = count,
-                _ => Err(ParseCubesError)?,
+    fn next_line(&mut self) {
+        if !self.done {
+            for &c in &mut *self.input {
+                if c == b'\n' {
+                    break;
+                }
             }
         }
-        Ok(Self::new(red, green, blue))
+        self.done = false;
+    }
+
+    fn consume_prefix(&mut self) -> bool {
+        if !self.done {
+            for &c in &mut *self.input {
+                if c == b':' {
+                    return true
+                }
+            }
+        }
+        false
+    }
+
+    fn consume_prefix_return_game_id(&mut self) -> Option<u32> {
+        let mut game_id = 0;
+        if self.done {
+            return None;
+        }
+        for &c in &mut *self.input {
+            match c {
+                b'0'..=b'9' => {
+                    game_id *= 10;
+                    game_id += (c - b'0') as u32;
+                },
+                b':' => break,
+                _ => {},
+            }
+        }
+        if game_id != 0 {
+            Some(game_id)
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, T> Iterator for TupleMaker<'a, T>
+    where T: Iterator<Item = &'a u8>
+{
+    type Item = (u32, u32, u32);
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        for &c in &mut *self.input {
+            let last_was_space = self.last_was_space;
+            self.last_was_space = c == b' ';
+            match c {
+                b'0'..=b'9' => {
+                    self.count *= 10;
+                    self.count += (c - b'0') as u32;
+                },
+                b'r' if last_was_space => {
+                    self.tuple.0 = self.count;
+                    self.count = 0;
+                },
+                b'g' if last_was_space => {
+                    self.tuple.1 = self.count;
+                    self.count = 0;
+                },
+                b'b' if last_was_space => {
+                    self.tuple.2 = self.count;
+                    self.count = 0;
+                },
+                b';' => return Some(std::mem::take(&mut self.tuple)),
+                b'\n' => break,
+                _ => {},
+            }
+        }
+        self.done = true;
+        Some(std::mem::take(&mut self.tuple))
     }
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
     let mut total = 0;
-    let mine = Cubes::new(12, 13, 14);
-    for s in input.split('\n') {
-        let mut sections = s.split(':');
-        let Some(game) = sections.next() else {
-            continue;
+    let mine = (12, 13, 14);
+    let mut input = input.as_bytes().iter();
+    let mut tm = TupleMaker::new(&mut input);
+    loop {
+        let Some(game_id) = tm.consume_prefix_return_game_id() else {
+            return Some(total);
         };
-        let mut game = game.split(' ');
-        game.next();
-        let Some(game_id) = game.next().and_then(|x| x.parse::<u32>().ok()) else {
-            continue;
-        };
-        let Some(rest) = sections.next() else {
-            continue;
-        };
-        let possible = 'poss: {
-            for d in rest.split(';') {
-                let draw = &d.parse().ok()?;
-                if !mine.is_possible_to_draw(draw) {
-                    break 'poss false;
-                }
+
+        let mut possible = true;
+        for t in &mut tm {
+            // One way that's faster is if we compare each individual value
+            // as we parse it.
+            if mine.0 < t.0
+                || mine.1 < t.1
+                || mine.2 < t.2
+            {
+                possible = false;
+                break;
             }
-            true
-        };
+        }
+
         if possible {
             total += game_id;
         }
+        tm.next_line();
     }
-    Some(total)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
     let mut total = 0;
-    for s in input.split('\n') {
-        let mut min_set = Cubes::default();
-        let mut sections = s.split(':');
-        sections.next();
-        let Some(rest) = sections.next() else {
-            continue;
-        };
-        for d in rest.split(';') {
-            let draw = d.parse().ok()?;
-            min_set.take_max(&draw);
+    let mut input = input.as_bytes().iter();
+    let mut tm = TupleMaker::new(&mut input);
+    while tm.consume_prefix() {
+        let mut mine = (0, 0, 0);
+        for t in &mut tm {
+            mine.0 = mine.0.max(t.0);
+            mine.1 = mine.1.max(t.1);
+            mine.2 = mine.2.max(t.2);
         }
-        total += min_set.power();
+
+        total += mine.0 * mine.1 * mine.2;
+        tm.next_line();
     }
     Some(total)
 }
