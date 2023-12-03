@@ -50,27 +50,27 @@ impl<'a, T> TupleMaker<'a, T>
         false
     }
 
-    fn consume_prefix_return_game_id(&mut self) -> Option<u32> {
-        let mut game_id = 0;
-        if self.done {
-            return None;
-        }
-        for &c in &mut *self.input {
-            match c {
-                b'0'..=b'9' => {
-                    game_id *= 10;
-                    game_id += (c - b'0') as u32;
-                },
-                b':' => break,
-                _ => {},
-            }
-        }
-        if game_id != 0 {
-            Some(game_id)
-        } else {
-            None
-        }
-    }
+    // fn consume_prefix_return_game_id(&mut self) -> Option<u32> {
+    //     let mut game_id = 0;
+    //     if self.done {
+    //         return None;
+    //     }
+    //     for &c in &mut *self.input {
+    //         match c {
+    //             b'0'..=b'9' => {
+    //                 game_id *= 10;
+    //                 game_id += (c - b'0') as u32;
+    //             },
+    //             b':' => break,
+    //             _ => {},
+    //         }
+    //     }
+    //     if game_id != 0 {
+    //         Some(game_id)
+    //     } else {
+    //         None
+    //     }
+    // }
 }
 
 impl<'a, T> Iterator for TupleMaker<'a, T>
@@ -113,9 +113,7 @@ impl<'a, T> Iterator for TupleMaker<'a, T>
 
 pub fn part_one(input: &str) -> Option<u32> {
     let mut total = 0;
-    let red = 12;
-    let green = 13;
-    let blue = 14;
+    let mine = (12, 13, 14);
     let mut input = input.as_bytes().iter();
     loop {
         let mut game_id = 0;
@@ -140,33 +138,19 @@ pub fn part_one(input: &str) -> Option<u32> {
         for &c in input.by_ref() {
             let lws = last_was_space;
             last_was_space = c == b' ';
-            match c {
-                b'0'..=b'9' => {
+            match (c, mine) {
+                (b'0'..=b'9', _) => {
                     count *= 10;
                     count += (c - b'0') as u32;
                 },
-                b'r' if lws => {
-                    possible = red >= count;
+                (b'r', (o, ..)) | (b'g', (_, o, ..)) | (b'b', (_, _, o)) if lws => {
+                    possible = o >= count;
                     count = 0;
                     if !possible {
                         break;
                     }
                 },
-                b'g' if lws => {
-                    possible = green >= count;
-                    count = 0;
-                    if !possible {
-                        break;
-                    }
-                },
-                b'b' if lws => {
-                    possible = blue >= count;
-                    count = 0;
-                    if !possible {
-                        break;
-                    }
-                },
-                b'\n' => {
+                (b'\n', _) => {
                     done = true;
                     break;
                 },
