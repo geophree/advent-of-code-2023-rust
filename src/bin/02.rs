@@ -31,7 +31,7 @@ where
 
     fn next_line(&mut self) {
         if !self.done {
-            for &c in &mut *self.input {
+            for &c in self.input.by_ref() {
                 if c == b'\n' {
                     break;
                 }
@@ -42,7 +42,7 @@ where
 
     fn consume_prefix(&mut self) -> bool {
         if !self.done {
-            for &c in &mut *self.input {
+            for &c in self.input.by_ref() {
                 if c == b':' {
                     return true;
                 }
@@ -56,7 +56,7 @@ where
     //     if self.done {
     //         return None;
     //     }
-    //     for &c in &mut *self.input {
+    //     for &c in self.input.by_ref() {
     //         match c {
     //             b'0'..=b'9' => {
     //                 game_id *= 10;
@@ -83,7 +83,7 @@ where
         if self.done {
             return None;
         }
-        for &c in &mut *self.input {
+        for &c in self.input.by_ref() {
             let last_was_space = self.last_was_space;
             self.last_was_space = c == b' ';
             match c {
