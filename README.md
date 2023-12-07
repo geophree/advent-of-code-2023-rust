@@ -30,6 +30,8 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 **Total: 0.68ms**
 <!--- benchmarking table --->
 
+All benchmarks run on an Dell XPS 13 9370 laptop with an Intel Core i7-8550U CPU @ 1.80GHz.
+
 ---
 
 ## Template setup
