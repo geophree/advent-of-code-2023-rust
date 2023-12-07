@@ -112,12 +112,15 @@ pub fn part_two(input: &str) -> Option<u32> {
             let range_length = read_u64(&mut input).unwrap();
             let source_end = source_start + (range_length - 1);
             if let Some(rs) = id_ranges.remove_range(source_start..=source_end) {
-                for r in rs.into_smallvec().into_iter() {
-                    next_id_ranges.insert_range((r.start() - source_start + dest_start)..=(r.end() - source_start + dest_start));
+                for r in rs.into_smallvec() {
+                    next_id_ranges.insert_range(
+                        (r.start() - source_start + dest_start)
+                            ..=(r.end() - source_start + dest_start),
+                    );
                 }
             }
         }
-        for r in id_ranges.into_smallvec().into_iter() {
+        for r in id_ranges.into_smallvec() {
             next_id_ranges.insert_range(r);
         }
         id_ranges = next_id_ranges;
