@@ -22,14 +22,15 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 
 | Day | Part 1 | Part 2 |
 | :---: | :---: | :---:  |
-| [Day 1](./src/bin/01.rs) | `903.0ns` | `264.7µs` |
-| [Day 2](./src/bin/02.rs) | `16.0µs` | `10.7µs` |
-| [Day 3](./src/bin/03.rs) | `82.0µs` | `97.0µs` |
-| [Day 4](./src/bin/04.rs) | `66.4µs` | `81.3µs` |
-| [Day 5](./src/bin/05.rs) | `11.7µs` | `44.4µs` |
-| [Day 6](./src/bin/06.rs) | `181.0ns` | `66.0ns` |
+| [Day 1](./src/bin/01.rs) | `920.0ns` | `262.5µs` |
+| [Day 2](./src/bin/02.rs) | `16.4µs` | `10.0µs` |
+| [Day 3](./src/bin/03.rs) | `83.5µs` | `97.6µs` |
+| [Day 4](./src/bin/04.rs) | `68.0µs` | `82.8µs` |
+| [Day 5](./src/bin/05.rs) | `11.7µs` | `44.8µs` |
+| [Day 6](./src/bin/06.rs) | `177.0ns` | `74.0ns` |
+| [Day 7](./src/bin/07.rs) | `195.3µs` | `191.2µs` |
 
-**Total: 0.68ms**
+**Total: 1.06ms**
 <!--- benchmarking table --->
 
 All benchmarks run on an Dell XPS 13 9370 laptop with an Intel Core i7-8550U CPU @ 1.80GHz.
