@@ -78,6 +78,7 @@ pub fn submit(day: Day, part: u8, result: &str) -> Result<Output, AocCommandErro
     // workaround: the argument order is inverted for submit.
     let mut args = build_args("submit", &[], day);
     args.push(part.to_string());
+    args.push("--".to_string());
     args.push(result.to_string());
     call_aoc_cli(&args)
 }
