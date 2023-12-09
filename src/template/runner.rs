@@ -9,7 +9,7 @@ use std::{cmp, env, process};
 
 use super::ANSI_BOLD;
 
-pub fn run_part<I: Clone, T: Display>(func: impl Fn(I) -> Option<T>, input: I, day: Day, part: u8) {
+pub fn run_part<I: ?Sized, T: Display>(func: impl Fn(&I) -> Option<T>, input: &I, day: Day, part: u8) {
     let part_str = format!("Part {part}");
 
     let (result, duration, samples) =
@@ -25,19 +25,19 @@ pub fn run_part<I: Clone, T: Display>(func: impl Fn(I) -> Option<T>, input: I, d
 /// Run a solution part. The behavior differs depending on whether we are running a release or debug build:
 ///  1. in debug, the function is executed once.
 ///  2. in release, the function is benched (approx. 1 second of execution time or 10 samples, whatever take longer.)
-fn run_timed<I: Clone, T>(
-    func: impl Fn(I) -> T,
-    input: I,
+fn run_timed<I: ?Sized, T>(
+    func: impl Fn(&I) -> T,
+    input: &I,
     hook: impl Fn(&T),
 ) -> (T, Duration, u128) {
     let timer = Instant::now();
-    let result = func(input.clone());
+    let result = func(input);
     let base_time = timer.elapsed();
 
     hook(&result);
 
     let run = if std::env::args().any(|x| x == "--time") {
-        bench(func, input, &base_time)
+        bench(func, input, base_time)
     } else {
         (base_time, 1)
     };
@@ -45,21 +45,19 @@ fn run_timed<I: Clone, T>(
     (result, run.0, run.1)
 }
 
-fn bench<I: Clone, T>(func: impl Fn(I) -> T, input: I, base_time: &Duration) -> (Duration, u128) {
+fn bench<I: ?Sized, T>(func: impl Fn(&I) -> T, input: &I, base_time: Duration) -> (Duration, u128) {
     let mut stdout = stdout();
 
     print!(" > {ANSI_ITALIC}benching{ANSI_RESET}");
     let _ = stdout.flush();
 
     let bench_iterations = Duration::from_secs(1).as_nanos() / cmp::max(base_time.as_nanos(), 10);
-    let bench_iterations = bench_iterations.clamp(10, 10000);
-    let mut timers: Vec<Duration> = vec![];
+    let bench_iterations = bench_iterations.clamp(2, 10000);
+    let mut timers: Vec<Duration> = vec![base_time];
 
-    for _ in 0..bench_iterations {
-        // need a clone here to make the borrow checker happy.
-        let cloned = input.clone();
+    for _ in 0..(bench_iterations - 1) {
         let timer = Instant::now();
-        func(cloned);
+        func(input);
         timers.push(timer.elapsed());
     }
 
