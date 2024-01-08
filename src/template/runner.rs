@@ -9,7 +9,12 @@ use std::{cmp, env, process};
 
 use super::ANSI_BOLD;
 
-pub fn run_part<I: ?Sized, T: Display>(func: impl Fn(&I) -> Option<T>, input: &I, day: Day, part: u8) {
+pub fn run_part<I: ?Sized, T: Display>(
+    func: impl Fn(&I) -> Option<T>,
+    input: &I,
+    day: Day,
+    part: u8,
+) {
     let part_str = format!("Part {part}");
 
     let (result, duration, samples) =
