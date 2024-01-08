@@ -20,8 +20,6 @@ pub fn part_one(input: &str) -> Option<i32> {
             }
             number *= sign;
             let mut push_num = true;
-            // TODO: just do this until first 0 0,
-            // then we know how many end numbers we need, then work from end
             for n in &mut differences {
                 if *n == 0 && number == 0 {
                     push_num = false;
