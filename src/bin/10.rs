@@ -14,9 +14,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     let pos1 = iter.position(|c| *c == b'\n' || *c == b'S').unwrap();
     let (width, start) = match input[pos1] {
         b'\n' => (pos1, pos1 + 1 + iter.position(|c| *c == b'S').unwrap()),
-        // b'\n' => (pos1, input.iter().position(|c| *c == b'S').unwrap()),
         b'S' => (pos1 + 1 + iter.position(|c| *c == b'\n').unwrap(), pos1),
-        // b'S' => (input.iter().position(|c| *c == b'\n').unwrap(), pos1),
         _ => return None,
     };
     let char_per_row = width + 1; // includes \n or EOF
@@ -91,7 +89,27 @@ mod tests {
     #[test]
     fn test_part_one() {
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        assert_eq!(result, Some(4));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 2,
+        ));
         assert_eq!(result, Some(8));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 3,
+        ));
+        assert_eq!(result, Some(23));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 4,
+        ));
+        assert_eq!(result, Some(22));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 5,
+        ));
+        assert_eq!(result, Some(70));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 6,
+        ));
+        assert_eq!(result, Some(80));
     }
 
     #[test]
