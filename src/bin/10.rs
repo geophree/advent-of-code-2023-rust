@@ -72,7 +72,7 @@ impl Wrap {
 
 struct WrapTracker {
     width: usize,
-    height: usize,
+    // height: usize,
     wrap_counts: Vec<Wrap>,
     internal_count: u32,
 }
@@ -81,7 +81,7 @@ impl WrapTracker {
     fn new(width: usize, height: usize) -> Self {
         Self {
             width,
-            height,
+            // height,
             wrap_counts: vec![Default::default(); width * height],
             internal_count: 0,
         }
@@ -226,6 +226,8 @@ pub fn part_two(input: &str) -> Option<u32> {
     let start_col = start % char_per_row;
     let height = input.len() / char_per_row;
     let index_rc = |row, col| row * char_per_row + col;
+    let mut wrap_tracker = WrapTracker::new(width, height);
+    wrap_tracker.mark_on_loop((start_row, start_col));
     let mut conns = vec![];
     if start_row > 0
         && matches!(
@@ -304,7 +306,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     };
 
     let stop_after = loop {
-        // mark that it's a part of the loop
+        wrap_tracker.mark_on_loop(head.0);
         let quad = get_quadrant(head.0);
         let old_head = head;
         head = advance(head);
@@ -313,36 +315,61 @@ pub fn part_two(input: &str) -> Option<u32> {
         }
     };
 
-    let mut entry = None;
-    let contained = 0;
+    let mut quad_line_entry_dir = None;
     loop {
         let done = head.0 == stop_after;
-        // mark that it's a part of the loop
-        // remove from "contained" count if wraps is non-zero?
+        wrap_tracker.mark_on_loop(head.0);
         let quad = get_quadrant(head.0);
         if quad.is_orthogonal(head.1) {
-            entry = Some(head.1);
+            quad_line_entry_dir = Some(head.1);
         }
         let new_head = advance(head);
         if quad.is_orthogonal(new_head.1) {
-            if let Some(entry) = entry {
-                if entry == new_head.1 {
-                    // add or subtract based on direction
-                    // to all "more towards the middle" cells in the same quad
+            if let Some(entry_dir) = quad_line_entry_dir {
+                if entry_dir == new_head.1 {
+                    let mut pos = head.0;
+                    let advance = match quad {
+                        Dir::N => |(row, col)| (row + 1, col),
+                        Dir::S => |(row, col)| (row - 1, col),
+                        Dir::E => |(row, col)| (row, col - 1),
+                        Dir::W => |(row, col)| (row, col + 1),
+                    };
+                    loop {
+                        pos = advance(pos);
+                        if quad != get_quadrant(pos) {
+                            break;
+                        }
+                        wrap_tracker.add_wrap(pos, entry_dir);
+                    }
                 }
             }
-            entry = None;
-        }
-        let new_quad = get_quadrant(new_head.0);
-        if quad != new_quad {
-            entry = None;
+            quad_line_entry_dir = None;
         }
         if done {
             break;
         }
+        let new_quad = get_quadrant(new_head.0);
+        if quad != new_quad {
+            quad_line_entry_dir = None;
+        }
         head = new_head;
     }
-    Some(contained)
+    // println!("hello: {width} {height}");
+    // for row in 0..height {
+    //     for col in 0..width {
+    //         let index = wrap_tracker.index((row, col));
+    //         let s = match wrap_tracker.wrap_counts[index] {
+    //             Wrap::OnLoop => "*".to_owned(),
+    //             Wrap::Wrap(count) => {
+    //                 let count = count.abs();
+    //                 format!("{count}")
+    //             },
+    //         };
+    //         print!("{s}");
+    //     }
+    //     println!("");
+    // }
+    Some(wrap_tracker.internal_count)
 }
 
 #[cfg(test)]
@@ -379,23 +406,23 @@ mod tests {
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(1));
-        let result = part_one(&advent_of_code::template::read_file_part(
+        let result = part_two(&advent_of_code::template::read_file_part(
             "examples", DAY, 2,
         ));
         assert_eq!(result, Some(1));
-        let result = part_one(&advent_of_code::template::read_file_part(
+        let result = part_two(&advent_of_code::template::read_file_part(
             "examples", DAY, 3,
         ));
         assert_eq!(result, Some(4));
-        let result = part_one(&advent_of_code::template::read_file_part(
+        let result = part_two(&advent_of_code::template::read_file_part(
             "examples", DAY, 4,
         ));
         assert_eq!(result, Some(4));
-        let result = part_one(&advent_of_code::template::read_file_part(
+        let result = part_two(&advent_of_code::template::read_file_part(
             "examples", DAY, 5,
         ));
         assert_eq!(result, Some(8));
-        let result = part_one(&advent_of_code::template::read_file_part(
+        let result = part_two(&advent_of_code::template::read_file_part(
             "examples", DAY, 6,
         ));
         assert_eq!(result, Some(10));
