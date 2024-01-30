@@ -219,7 +219,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         .collect();
 
     let instruction_steps = instructions.len() as u32;
-    let mut end_data: Vec<_> = positions
+    let loop_data: Vec<_> = positions
         .into_iter()
         .map(|mut position| {
             let mut steps = 0;
@@ -245,17 +245,53 @@ pub fn part_two(input: &str) -> Option<u64> {
                     if let Some(loop_to_index) = loop_to_index {
                         let steps_only: Vec<_> =
                             end_data.into_iter().map(|(steps, _)| steps).collect();
-                        return StepsToEndIter::new(steps_only, loop_to_index)
-                            .scan(0u64, |total, steps| {
-                                *total += u64::from(steps);
-                                Some(*total)
-                            })
-                            .peekable();
+                        return (steps_only, loop_to_index);
                     }
                     steps = 0;
                 }
             }
             unreachable!();
+        })
+        .collect();
+    if loop_data
+        .iter()
+        .all(|(steps, _)| steps.windows(2).all(|w| w[0] == w[1]))
+    {
+        // If we have simple loops, just find their lowest common multiple (LCM)
+        let mut loop_data: Vec<_> = loop_data.into_iter().map(|(steps, _)| steps[0]).collect();
+        let mut lcm = 1u64;
+        for prime in PrimeIterator::new() {
+            if loop_data.windows(2).all(|w| w[0] == w[1]) {
+                lcm *= u64::from(loop_data[0]);
+                break;
+            }
+            let mut max_exponent = 0;
+            for step in &mut loop_data {
+                let mut exponent = 0;
+                loop {
+                    let (quo, rem) = (*step / prime, *step % prime);
+                    if rem != 0 {
+                        break;
+                    }
+                    *step = quo;
+                    exponent += 1;
+                }
+                max_exponent = max_exponent.max(exponent);
+            }
+            let prime = u64::from(prime);
+            lcm *= prime.pow(max_exponent);
+        }
+        return Some(lcm);
+    }
+    let mut end_data: Vec<_> = loop_data
+        .into_iter()
+        .map(|(steps_only, loop_to_index)| {
+            StepsToEndIter::new(steps_only, loop_to_index)
+                .scan(0u64, |total, steps| {
+                    *total += u64::from(steps);
+                    Some(*total)
+                })
+                .peekable()
         })
         .collect();
     loop {
