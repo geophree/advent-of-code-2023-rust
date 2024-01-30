@@ -47,6 +47,124 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(steps)
 }
 
+// adapted from https://en.wikipedia.org/wiki/Binary_GCD_algorithm
+// I don't think I need this?
+// LCM(a, b) = a * (b / GCD(a, b))
+pub fn gcd(mut u: u32, mut v: u32) -> u32 {
+    match (u, v) {
+        (0, x) | (x, 0) => return x,
+        _ => {}
+    }
+
+    if u == v {
+        return u;
+    }
+
+    let u_trailing = u.trailing_zeros();
+    let v_trailing = v.trailing_zeros();
+    let gcd_exponent_on_two = u_trailing.min(v_trailing);
+
+    u >>= u_trailing;
+    v >>= v_trailing;
+
+    while u != v {
+        if u < v {
+            (u, v) = (v, u);
+        }
+        u -= v;
+        u >>= u.trailing_zeros();
+    }
+
+    u << gcd_exponent_on_two
+}
+
+const COUNTER_PRIMES: [u8; 8] = [5, 7, 11, 13, 17, 19, 23, 29];
+const CHECK_STARTING_INDEX: usize = 2 + COUNTER_PRIMES.len();
+
+// adapted from https://zsmith.co/primes.php
+#[derive(Debug)]
+struct PrimeIterator {
+    primes: Vec<u32>,
+    index: usize,
+    counters: [u8; 8],
+    check_to_index: usize,
+    check_safe_until: u32,
+    skip_four: bool,
+}
+
+impl PrimeIterator {
+    fn new() -> Self {
+        Self {
+            primes: vec![
+                2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79,
+                83, 89, 97,
+            ],
+            index: 0,
+
+            // these are based on starting at 97 (6*16 + 1)
+            counters: [2, 6, 9, 6, 12, 2, 5, 10],
+            // (we check (6*16 + 5) next
+            skip_four: true,
+
+            // this starts after the primes we keep counters for
+            check_to_index: CHECK_STARTING_INDEX,
+            check_safe_until: 841,
+        }
+    }
+}
+
+impl Iterator for PrimeIterator {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.index;
+        if index < self.primes.len() {
+            self.index += 1;
+            return Some(self.primes[index]);
+        }
+
+        let mut maybe_prime = self.primes[index - 1];
+        loop {
+            // all primes are (6n + 1) or (6n + 5), so alternate +2 and +4
+            let inc: u8 = 2 + 2 * u8::from(self.skip_four);
+            self.skip_four = !self.skip_four;
+
+            maybe_prime += u32::from(inc);
+
+            let mut is_composite = false;
+            for (p, modulus) in COUNTER_PRIMES.iter().zip(self.counters.iter_mut()) {
+                *modulus += inc;
+                if *modulus >= *p {
+                    *modulus -= p;
+                    is_composite = is_composite || *modulus == 0;
+                }
+            }
+
+            if is_composite {
+                continue;
+            }
+
+            if maybe_prime > self.check_safe_until {
+                self.check_to_index += 1;
+                let highest_check_prime = self.primes[self.check_to_index];
+                self.check_safe_until = highest_check_prime.saturating_mul(highest_check_prime);
+            }
+
+            for p in &self.primes[CHECK_STARTING_INDEX..=self.check_to_index] {
+                is_composite = is_composite || maybe_prime % p == 0;
+            }
+
+            if is_composite {
+                continue;
+            }
+
+            self.primes.push(maybe_prime);
+            self.index += 1;
+            break Some(maybe_prime);
+        }
+    }
+}
+
 #[derive(Debug)]
 struct StepsToEndIter {
     steps_to_ends: Vec<u32>,
@@ -179,5 +297,50 @@ mod tests {
             "examples", DAY, 2,
         ));
         assert_eq!(result, Some(6));
+    }
+
+    #[test]
+    fn test_gcd() {
+        assert_eq!(gcd(2, 4), 2);
+        assert_eq!(gcd(1, 5), 1);
+        assert_eq!(gcd(3, 6), 3);
+        assert_eq!(gcd(4, 12), 4);
+        assert_eq!(gcd(6, 12), 6);
+        assert_eq!(gcd(6, 8), 2);
+
+        // the following tests came from:
+        // https://codereview.stackexchange.com/questions/183211/find-the-greatest-common-divisor-with-unit-tests
+        assert_eq!(gcd(42, 56), 14);
+        assert_eq!(gcd(461952, 116298), 18);
+        assert_eq!(gcd(7966496, 314080416), 32);
+        assert_eq!(gcd(24826148, 45296490), 526);
+        assert_eq!(gcd(12, 0), 12);
+        assert_eq!(gcd(0, 0), 0);
+        assert_eq!(gcd(0, 9), 9);
+    }
+
+    #[test]
+    fn test_prime_iterator() {
+        let mut it = PrimeIterator::new();
+        let result = it.next();
+        assert_eq!(result, Some(2));
+        let result = it.next();
+        assert_eq!(result, Some(3));
+        let mut it = it.skip(22);
+        let result = it.next();
+        assert_eq!(result, Some(97));
+        let result = it.next();
+        assert_eq!(result, Some(101));
+        let result = it.next();
+        assert_eq!(result, Some(103));
+        let mut it = it.skip(22);
+        let result = it.next();
+        assert_eq!(result, Some(229));
+        let mut it = it.skip(1099);
+        let result = it.next();
+        assert_eq!(result, Some(9283));
+        let mut it = it.skip(849);
+        let result = it.next();
+        assert_eq!(result, Some(17389));
     }
 }
