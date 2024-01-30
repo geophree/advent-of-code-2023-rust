@@ -26,18 +26,18 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 
 | Day | Part 1 | Part 2 |
 | :---: | :---: | :---:  |
-| [Day 1](./src/bin/01.rs) | `1.8µs` | `273.6µs` |
-| [Day 2](./src/bin/02.rs) | `16.7µs` | `9.7µs` |
-| [Day 3](./src/bin/03.rs) | `93.9µs` | `96.5µs` |
-| [Day 4](./src/bin/04.rs) | `57.9µs` | `73.8µs` |
-| [Day 5](./src/bin/05.rs) | `11.6µs` | `44.8µs` |
-| [Day 6](./src/bin/06.rs) | `144.0ns` | `65.0ns` |
-| [Day 7](./src/bin/07.rs) | `191.6µs` | `192.0µs` |
-| [Day 8](./src/bin/08.rs) | `330.8µs` | `27.2s` |
-| [Day 9](./src/bin/09.rs) | `77.8µs` | `121.2µs` |
-| [Day 10](./src/bin/10.rs) | `100.2µs` | `570.4µs` |
+| [Day 1](./src/bin/01.rs) | `872.0ns` | `273.9µs` |
+| [Day 2](./src/bin/02.rs) | `16.6µs` | `9.8µs` |
+| [Day 3](./src/bin/03.rs) | `93.0µs` | `111.0µs` |
+| [Day 4](./src/bin/04.rs) | `61.4µs` | `74.7µs` |
+| [Day 5](./src/bin/05.rs) | `11.9µs` | `45.6µs` |
+| [Day 6](./src/bin/06.rs) | `150.0ns` | `64.0ns` |
+| [Day 7](./src/bin/07.rs) | `195.2µs` | `195.8µs` |
+| [Day 8](./src/bin/08.rs) | `339.7µs` | `2.9ms` |
+| [Day 9](./src/bin/09.rs) | `74.1µs` | `119.1µs` |
+| [Day 10](./src/bin/10.rs) | `104.1µs` | `583.2µs` |
 
-**Total: 27202.26ms**
+**Total: 5.21ms**
 <!--- benchmarking table --->
 
 All benchmarks run on an Dell XPS 13 9370 laptop with an Intel Core i7-8550U CPU @ 1.80GHz.
